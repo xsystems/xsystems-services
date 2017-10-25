@@ -1,0 +1,84 @@
+version: '3.2'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:alpine
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.9'
+          memory: '448M'
+        reservations:
+          memory: '256M'
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 60s
+    env_file: xsystems-stack.env
+    user: "root"
+    volumes:
+      - xsystems-jenkins:/var/jenkins_home
+    networks:
+      - xsystems-network
+
+  ldap:
+    image: xsystems/ldap:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '128M'
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 60s
+    env_file: xsystems-stack.env
+    volumes:
+      - xsystems-letsencrypt:/etc/letsencrypt
+    networks:
+      - xsystems-network
+
+  proxy:
+    image: xsystems/proxy:1.3.0
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '64M'
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 60s
+    env_file: xsystems-stack.env
+    environment:
+      - PROXY_STAGING_DISABLED=${PROXY_STAGING_DISABLED}
+    volumes:
+      - /dev/log:/dev/log
+      - xsystems-letsencrypt:/etc/letsencrypt
+    networks:
+      - xsystems-network
+    ports:
+      - "80:80"
+      - "443:443"
+      - "389:389"
+      - "9090:9090"
+
+
+volumes:
+  xsystems-jenkins:
+    external: true
+  xsystems-letsencrypt:
+    external: true
+
+
+networks:
+  xsystems-network:
