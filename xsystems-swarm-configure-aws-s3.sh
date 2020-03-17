@@ -5,20 +5,23 @@ usage() {
 }
 
 install_plugin_aws_s3() {
-  docker-machine ssh $1 <<EOF
+  ssh root@$1 <<EOF
     docker plugin install --grant-all-permissions \
-                          rexray/s3fs \
+                          rexray/s3fs:0.11.1 \
                           S3FS_ACCESSKEY=${AWS_ACCESSKEY} \
                           S3FS_SECRETKEY=${AWS_SECRETKEY}
 EOF
 }
 
-if [ "$1" ] ; then
-  NODES=$(docker-machine ssh "$1" docker node ls --format "{{.Hostname}}")
+MANAGER_NODE="$1"
+
+if [ $MANAGER_NODE ] ; then
+  NODES=$(ssh root@$MANAGER_NODE docker node ls --format "{{.Hostname}}")
 else
   usage; exit
 fi
 
 for NODE in ${NODES} ; do
-  install_plugin_aws_s3 ${NODE}
+  NODE_ADDR=$(ssh root@$MANAGER_NODE docker node inspect "$NODE" --format "{{.Status.Addr}}")
+  install_plugin_aws_s3 ${NODE_ADDR}
 done
