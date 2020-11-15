@@ -6,15 +6,16 @@ usage() {
 
 create_machine_virtualbox() {
   docker-machine create --driver=virtualbox \
-                        --virtualbox-memory ${VIRTUALBOX_MEMORY_SIZE:-512} \
+                        --virtualbox-memory ${VIRTUALBOX_MEMORY_SIZE:-1024} \
                         --virtualbox-disk-size ${VIRTUALBOX_DISK_SIZE:-10000} \
                         $1
 }
 
 create_machine_digitalocean() {
   docker-machine create --driver=digitalocean \
+                        --digitalocean-image=ubuntu-20-04-x64 \
                         --digitalocean-access-token ${DIGITALOCEAN_ACCESS_TOKEN} \
-                        --digitalocean-size ${DIGITALOCEAN_SIZE:-512mb} \
+                        --digitalocean-size ${DIGITALOCEAN_SIZE:-s-1vcpu-1gb} \
                         --digitalocean-region ${DIGITALOCEAN_REGION:-ams3} \
                         $1
 }
